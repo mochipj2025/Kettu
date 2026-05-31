@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ケツ印一家 GPTプロンプトメーカー</title>
+    <style>
+        /* --- デザインシステム & 変数 --- */
+        :root {
+            --color-black-deep: #0d0d0d;
+            --color-black-matte: #1a1a1a;
+            --color-gold-bright: #ffd700;
+            --color-gold-matte: #cca43b;
+            --color-pink-hot: #ff1493;
+            --color-pink-soft: #ffb6c1;
+            --color-white: #ffffff;
+            --font-family-serif: 'Sawarabi Mincho', 'Noto Serif JP', serif;
+            --font-family-sans: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Google Fonts から和風のフォントをインポート */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700;900&family=Sawarabi+Mincho&display=swap');
+
+        /* --- 全体リセット --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--color-black-deep);
+            background-image: 
+                radial-gradient(circle at 50% 20%, rgba(255, 20, 147, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 10% 80%, rgba(204, 164, 59, 0.1) 0%, transparent 50%);
+            color: var(--color-white);
+            font-family: var(--font-family-sans);
+            min-height: 100vh;
+            padding-bottom: 60px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- 桜吹雪のエフェクト --- */
+        .sakura-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .petal {
+            position: absolute;
+            background-color: var(--color-pink-soft);
+            border-radius: 150% 0 150% 150%;
+            opacity: 0.7;
+            transform-origin: left top;
+            animation: float 12s linear infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(-10%) rotate(0deg) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(110vh) rotate(720deg) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* --- 家紋風シンボルマーク --- */
+        .family-crest-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .family-crest {
+            width: 80px;
+            height: 80px;
+            border: 3px double var(--color-gold-bright);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--color-black-matte);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            position: relative;
+        }
+
+        .crest-svg {
+            width: 55px;
+            height: 55px;
+            fill: none;
+            stroke: var(--color-gold-bright);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* --- ヘッダー --- */
+        header {
+            text-align: center;
+            padding: 25px 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo-sub {
+            font-family: var(--font-family-serif);
+            font-size: 0.85rem;
+            color: var(--color-pink-hot);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            font-weight: 700;
+            text-shadow: 0 0 8px rgba(255, 20, 147, 0.6);
+            margin-bottom: 5px;
+        }
+
+        .logo-main {
+            font-family: var(--font-family-serif);
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--color-gold-bright);
+            text-shadow: 
+                2px 2px 0px var(--color-black-deep),
+                -2px -2px 0px var(--color-black-deep),
+                2px -2px 0px var(--color-black-deep),
+                -2px 2px 0px var(--color-black-deep),
+                0 0 15px rgba(255, 215, 0, 0.5);
+            letter-spacing: 0.1em;
+            position: relative;
+            display: inline-block;
+            line-height: 1.2;
+        }
+
+        .logo-main::after {
+            content: '';
+            display: block;
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-gold-bright), transparent);
+            margin: 8px auto 0;
+        }
+
+        .logo-desc {
+            font-size: 0.75rem;
+            color: #ccc;
+            margin-top: 10px;
+            letter-spacing: 0.05em;
+        }
+
+        /* --- メインコンテンツレイアウト --- */
+        .main-container {
+            max-width: 540px;
+            margin: 0 auto;
+            padding: 0 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .panel {
+            background-color: rgba(26, 26, 26, 0.95);
+            border: 2px solid var(--color-gold-matte);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .panel-title {
+            font-family: var(--font-family-serif);
+            font-size: 1.15rem;
+            color: var(--color-gold-bright);
+            border-left: 4px solid var(--color-pink-hot);
+            padding-left: 10px;
+            margin-bottom: 18px;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* --- フォーム入力部品 --- */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--color-pink-soft);
+            margin-bottom: 6px;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+
+        .input-text, .select-box {
+            width: 100%;
+            background-color: var(--color-black-deep);
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: var(--color-white);
+            padding: 11px 12px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .input-text:focus, .select-box:focus {
+            border-color: var(--color-pink-hot);
+            box-shadow: 0 0 8px rgba(255, 20, 147, 0.4);
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .radio-btn input[type="radio"] {
+            display: none;
+        }
+
+        .radio-label {
+            display: block;
+            background-color: var(--color-black-deep);
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .radio-btn input[type="radio"]:checked + .radio-label {
+            border-color: var(--color-gold-bright);
+            background-color: rgba(204, 164, 59, 0.15);
+            color: var(--color-gold-bright);
+            font-weight: bold;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+        }
+
+        /* --- ランダムボックス（宝箱）セクション --- */
+        .gacha-display-box {
+            background-color: var(--color-black-deep);
+            border: 1px dashed var(--color-gold-matte);
+            border-radius: 6px;
+            padding: 20px 15px;
+            text-align: center;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .gacha-flash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .gacha-flash.active {
+            animation: flash-anim 0.5s ease-out;
+        }
+
+        @keyframes flash-anim {
+            0% { opacity: 0.9; }
+            100% { opacity: 0; }
+        }
+
+        .box-svg-wrapper {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 12px;
+            transition: transform 0.2s;
+        }
+
+        .box-svg-wrapper.shake {
+            animation: box-shake 0.5s infinite;
+        }
+
+        @keyframes box-shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-3px, -2px) rotate(-3deg); }
+            20% { transform: translate(3px, 2px) rotate(3deg); }
+            30% { transform: translate(-3px, 2px) rotate(-2deg); }
+            40% { transform: translate(3px, -2px) rotate(2deg); }
+            50% { transform: translate(-2px, 1px) rotate(-1deg); }
+            60% { transform: translate(2px, -1px) rotate(1deg); }
+            70% { transform: translate(-1px, -1px) rotate(-1deg); }
+            80% { transform: translate(1px, 2px) rotate(1deg); }
+            90% { transform: translate(-2px, -1px) rotate(-2deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .box-svg {
+            width: 100%;
+            height: 100%;
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* 武器のレア度バッジ */
+        .rarity-badge {
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: 900;
+            padding: 3px 14px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+            letter-spacing: 0.1em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .rarity-n { background: #555; color: #fff; }
+        .rarity-r { background: #1e90ff; color: #fff; }
+        .rarity-sr { background: #9932cc; color: #fff; }
+        .rarity-ssr { background: linear-gradient(45deg, #ff8c00, #ff1493); color: #fff; animation: pulse 1s infinite alternate; }
+        .rarity-lr { background: linear-gradient(45deg, #ff2121, #ffd700, #ff1493); color: #fff; font-weight: 900; animation: super-pulse 0.5s infinite alternate; border: 1px solid var(--color-gold-bright); }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.08); }
+        }
+        @keyframes super-pulse {
+            0% { transform: scale(1) rotate(-1deg); }
+            100% { transform: scale(1.12) rotate(1deg); }
+        }
+
+        .weapon-name {
+            font-family: var(--font-family-serif);
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--color-gold-bright);
+            margin-bottom: 6px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        }
+
+        .weapon-desc {
+            font-size: 0.85rem;
+            color: #ccc;
+            line-height: 1.4;
+            max-width: 90%;
+            margin-bottom: 6px;
+        }
+
+        .weapon-stat {
+            font-size: 0.8rem;
+            color: var(--color-pink-soft);
+            font-weight: bold;
+            background: rgba(255, 20, 147, 0.1);
+            padding: 2px 10px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 20, 147, 0.2);
+            display: inline-block;
+        }
+
+        /* 未開封時の案内テキスト */
+        .box-instruction {
+            font-family: var(--font-family-serif);
+            font-size: 1rem;
+            color: var(--color-gold-bright);
+            letter-spacing: 0.05em;
+            margin-top: 5px;
+        }
+
+        .box-instruction-sub {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* --- ボタン群 --- */
+        .btn-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .btn-full {
+            grid-column: span 2;
+        }
+
+        .btn {
+            font-family: var(--font-family-serif);
+            font-weight: 900;
+            font-size: 0.95rem;
+            padding: 12px 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            letter-spacing: 0.05em;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            user-select: none;
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #f3e092 0%, #cca43b 50%, #906e12 100%);
+            color: var(--color-black-deep);
+            border: 1px solid var(--color-gold-bright);
+            text-shadow: 0 1px 0px rgba(255,255,255,0.4);
+        }
+        .btn-gold:hover {
+            background: linear-gradient(135deg, #fff 0%, #e2b740 50%, #cca43b 100%);
+        }
+
+        .btn-pink {
+            background: linear-gradient(135deg, #ff69b4 0%, #ff1493 50%, #c71585 100%);
+            color: var(--color-white);
+            border: 1px solid var(--color-pink-soft);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        .btn-pink:hover {
+            background: linear-gradient(135deg, #ff8da1 0%, #ff1493 50%, #e00f80 100%);
+        }
+
+        .btn-sumi {
+            background: linear-gradient(135deg, #444 0%, #222 50%, #111 100%);
+            color: var(--color-white);
+            border: 1px solid #555;
+            text-shadow: 0 -1px 0 rgba(0,0,0,0.8);
+        }
+        .btn-sumi:hover {
+            background: linear-gradient(135deg, #555 0%, #333 50%, #222 100%);
+            border-color: #777;
+        }
+
+        .btn-red {
+            background: linear-gradient(135deg, #ff4e50 0%, #f9d423 100%);
+            color: var(--color-black-deep);
+            border: 1px solid #ffd700;
+        }
+
+        /* --- 出力エリア --- */
+        .prompt-textarea {
+            width: 100%;
+            height: 200px;
+            background-color: var(--color-black-deep);
+            border: 1px solid var(--color-gold-matte);
+            border-radius: 6px;
+            color: #e0e0e0;
+            padding: 12px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            resize: vertical;
+            font-family: inherit;
+            outline: none;
+            margin-bottom: 12px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
+        }
+
+        .prompt-textarea:focus {
+            border-color: var(--color-pink-hot);
+        }
+
+        /* コピペ通知メッセージ */
+        .toast-message {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background-color: rgba(255, 20, 147, 0.95);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--color-gold-bright);
+        }
+
+        .toast-message.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* 飾り提灯（デスクトップ時のみ見えるお祭り感） */
+        .lantern {
+            display: none;
+            position: absolute;
+            width: 35px;
+            height: 60px;
+            background-color: var(--color-pink-hot);
+            border-radius: 8px;
+            border: 2px solid var(--color-gold-bright);
+            box-shadow: 0 0 15px rgba(255, 20, 147, 0.8);
+            z-index: 1;
+        }
+
+        .lantern::after {
+            content: 'ケ';
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: var(--color-black-deep);
+            font-family: var(--font-family-serif);
+            font-weight: 900;
+            font-size: 1.1rem;
+        }
+
+        /* --- スマホ・タブレットメディアクエリ --- */
+        @media (min-width: 768px) {
+            body {
+                padding-top: 40px;
+                padding-bottom: 80px;
+            }
+            .logo-main {
+                font-size: 2.8rem;
+            }
+            .main-container {
+                max-width: 620px;
+            }
+            .lantern {
+                display: block;
+            }
+            .lantern-left {
+                left: 40px;
+                top: 80px;
+                transform: rotate(-5deg);
+            }
+            .lantern-right {
+                right: 40px;
+                top: 80px;
+                transform: rotate(5deg);
+            }
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 20px;
+            letter-spacing: 0.1em;
+            padding: 10px;
+        }
+
+        .gacha-roll-anim {
+            animation: roll-effect 0.12s infinite linear;
+        }
+
+        @keyframes roll-effect {
+            0% { transform: scale(0.95); opacity: 0.5; filter: blur(1px); }
+            50% { transform: scale(1.05); opacity: 0.9; filter: blur(0); }
+            100% { transform: scale(0.95); opacity: 0.5; filter: blur(1px); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 桜吹雪背景 -->
+    <div class="sakura-container" id="sakura-container"></div>
+
+    <!-- 飾り提灯（PCサイズ） -->
+    <div class="lantern lantern-left"></div>
+    <div class="lantern lantern-right"></div>
+
+    <!-- 家紋 -->
+    <div class="family-crest-wrapper">
+        <div class="family-crest">
+            <svg class="crest-svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" stroke="#ffd700" stroke-width="1.5" stroke-dasharray="2 2" fill="none" />
+                <circle cx="50" cy="50" r="41" stroke="#ffd700" stroke-width="1" fill="none" />
+                <path d="M 50 78 C 22 75, 18 36, 46 30 C 48 29.5, 52 29.5, 54 30 C 82 36, 78 75, 50 78 Z" fill="none" stroke="#ffd700" stroke-width="3"/>
+                <path d="M 50 30 L 50 78" stroke="#ffd700" stroke-width="2.5" />
+                <path d="M 28 65 Q 24 61, 24 55 Q 30 55, 32 61 Z" fill="#ffd700" />
+                <path d="M 72 65 Q 76 61, 76 55 Q 70 55, 68 61 Z" fill="#ffd700" />
+            </svg>
+        </div>
+    </div>
+
+    <!-- ヘッダー -->
+    <header>
+        <div class="logo-sub">ketsuin-ikka official creator</div>
+        <h1 class="logo-main">ケツ印一家<br>GPTプロンプトメーカー</h1>
+        <p class="logo-desc">義理と人情、そして少しのケツ。画像生成用呪文作成装置</p>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <div class="main-container">
+
+        <!-- 一、構成員設定 -->
+        <div class="panel">
+            <h2 class="panel-title">
+                <span>一、構成員設定</span>
+                <span style="font-size: 0.75rem; color: var(--color-pink-soft);">※基本設定</span>
+            </h2>
+            
+            <!-- キャラクター名 -->
+            <div class="form-group">
+                <label for="char-name">キャラクター名</label>
+                <input type="text" id="char-name" class="input-text" value="もちスラ" placeholder="例：もちスラ">
+            </div>
+
+            <!-- 役職 -->
+            <div class="form-group">
+                <label for="char-role">役職</label>
+                <select id="char-role" class="select-box">
+                    <option value="組長" selected>組長</option>
+                    <option value="若頭">若頭</option>
+                    <option value="極妻">極妻</option>
+                    <option value="宴会部長">宴会部長</option>
+                    <option value="サブスタ幹部">サブスタ幹部</option>
+                    <option value="ケツ縁番頭">ケツ縁番頭</option>
+                    <option value="笑顔取締役">笑顔取締役</option>
+                    <option value="桜吹雪の相談役">桜吹雪の相談役</option>
+                    <option value="人情奉行">人情奉行</option>
+                    <option value="桃尻特攻隊長">桃尻特攻隊長</option>
+                    <option value="宴会覇王">宴会覇王</option>
+                    <option value="ケツ縁の伝道師">ケツ縁の伝道師</option>
+                </select>
+            </div>
+
+            <!-- 頭身 -->
+            <div class="form-group">
+                <label>頭身</label>
+                <div class="radio-group">
+                    <div class="radio-btn">
+                        <input type="radio" id="head-3" name="head-ratio" value="3頭身" checked>
+                        <label for="head-3" class="radio-label">3頭身</label>
+                    </div>
+                    <div class="radio-btn">
+                        <input type="radio" id="head-4" name="head-ratio" value="4頭身">
+                        <label for="head-4" class="radio-label">4頭身</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 表情 -->
+            <div class="form-group">
+                <label for="char-expression">表情</label>
+                <select id="char-expression" class="select-box">
+                    <option value="堂々とした笑顔" selected>堂々とした笑顔</option>
+                    <option value="少し不敵な笑み">少し不敵な笑み</option>
+                    <option value="無垢で楽しそう">無垢で楽しそう</option>
+                    <option value="真顔なのに可愛い">真顔なのに可愛い</option>
+                    <option value="極妻風">極妻風</option>
+                    <option value="ドヤ顔">ドヤ顔</option>
+                    <option value="宴会で盛り上がっている">宴会で盛り上がっている</option>
+                </select>
+            </div>
+
+            <!-- ポーズ -->
+            <div class="form-group">
+                <label for="char-pose">ポーズ</label>
+                <select id="char-pose" class="select-box">
+                    <option value="仁王立ち" selected>仁王立ち</option>
+                    <option value="腕組み">腕組み</option>
+                    <option value="扇子を持つ">扇子を持つ</option>
+                    <option value="酒を持つ">酒を持つ</option>
+                    <option value="指差し">指差し</option>
+                    <option value="歩いている">歩いている</option>
+                    <option value="見得を切る">見得を切る</option>
+                </select>
+            </div>
+
+            <!-- 口上 -->
+            <div class="form-group">
+                <label for="char-kojo">口上（任意・下部に入ります）</label>
+                <input type="text" id="char-kojo" class="input-text" value="義理と人情、そして少しのケツ" placeholder="例：ケツ振りゃ天下泰平">
+            </div>
+        </div>
+
+        <!-- 二、名前札（千社札・木札）設定 【新規アセット化】 -->
+        <div class="panel">
+            <h2 class="panel-title">
+                <span>二、名前札設定（独立アセット）</span>
+                <span style="font-size: 0.75rem; color: var(--color-gold-bright);">★名札を独立描写</span>
+            </h2>
+
+            <!-- 名前札スタイル -->
+            <div class="form-group">
+                <label for="tag-style">名前札のデザイン</label>
+                <select id="tag-style" class="select-box">
+                    <option value="江戸千社札（桜色・漆黒太筆文字）" selected>江戸千社札（桜色・漆黒太筆文字）</option>
+                    <option value="極道漆木札（漆塗りの黒木、フチは金の二重線、内側は金の浮き彫り文字）">極道漆木札（金フチ・黒漆・金の文字）</option>
+                    <option value="高級金箔札（光沢ある黄金の下地、真っ黒な力強い毛筆文字）">高級金箔札（ゴールド・黒太筆文字）</option>
+                    <option value="お祭り紅白札（縁起の良い紅白枠、躍動感ある寄席文字）">お祭り紅白札（紅白・寄席文字）</option>
+                    <option value="ケツ印看板（桃色グラデーションの和紙札、金の家紋スタンプ入り）">ケツ印看板（桃色和紙・金の家紋入り）</option>
+                </select>
+            </div>
+
+            <!-- 名前札の配置 -->
+            <div class="form-group">
+                <label for="tag-position">ポスター内の配置場所</label>
+                <select id="tag-position" class="select-box">
+                    <option value="画面右上に縦書きで凛と浮かぶように配置" selected>画面右上に縦書き（映画ポスター風）</option>
+                    <option value="画面左上に縦書きで堂々とぶら下がるように配置">画面左上に縦書き（伝統千社札スタイル）</option>
+                    <option value="キャラクターのすぐ足元に、少し斜めに立てかけるように立体アセットとして配置">キャラクターの足元に立てかける（立体木札風）</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 三、ランダムボックス -->
+        <div class="panel">
+            <h2 class="panel-title">
+                <span>三、ケツ印特製ランダムボックス</span>
+                <span style="font-size: 0.75rem; color: var(--color-gold-bright);">★開封で決戦兵器獲得</span>
+            </h2>
+
+            <div class="gacha-display-box" id="gacha-box">
+                <div class="gacha-flash" id="gacha-flash"></div>
+                <div id="gacha-inner">
+                    <!-- 初期状態：未開封の和風ランダム千両箱 -->
+                    <div class="box-svg-wrapper" id="box-wrapper">
+                        <svg class="box-svg" viewBox="0 0 100 100" id="chest-svg">
+                            <rect x="20" y="35" width="60" height="45" rx="4" fill="none" stroke="#ffd700" stroke-width="3"/>
+                            <rect x="15" y="30" width="70" height="10" rx="2" fill="none" stroke="#ffd700" stroke-width="3"/>
+                            <circle cx="50" cy="55" r="14" fill="#ff1493" stroke="#ffd700" stroke-width="2"/>
+                            <path d="M 50 48 L 50 62 M 45 55 L 55 55" stroke="#ffd700" stroke-width="2"/>
+                            <line x1="32" y1="40" x2="32" y2="80" stroke="#ffd700" stroke-width="1.5" stroke-dasharray="2 2" />
+                            <line x1="68" y1="40" x2="68" y2="80" stroke="#ffd700" stroke-width="1.5" stroke-dasharray="2 2" />
+                            <path d="M 10 20 L 25 25 M 90 20 L 75 25 M 50 10 L 50 22" stroke="#ff1493" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="box-instruction" id="box-instruction">黄金のランダムボックス</div>
+                    <div class="box-instruction-sub" id="box-instruction-sub">下のボタンで開封すると、一家の秘蔵アイテムが出現！</div>
+                </div>
+            </div>
+
+            <button class="btn btn-pink btn-full" id="btn-gacha">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation: bounce 2s infinite;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                ランダムボックスを開封する
+            </button>
+        </div>
+
+        <!-- アクションボタンエリア -->
+        <div class="btn-container">
+            <button class="btn btn-sumi" id="btn-random">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+                天命お任せ（ランダム）
+            </button>
+            <button class="btn btn-gold" id="btn-generate">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                プロンプト構築
+            </button>
+        </div>
+
+        <!-- 完成プロンプト出力 -->
+        <div class="panel">
+            <h2 class="panel-title">
+                <span>四、極道プロンプト完成</span>
+                <span style="font-size: 0.75rem; color: var(--color-pink-soft);">※そのままChatGPTへ</span>
+            </h2>
+            
+            <textarea class="prompt-textarea" id="output-prompt" readonly placeholder="上記で設定を入力し、「プロンプト構築」ボタンを押すとここに画像生成用の最高級プロンプトが出力されます。"></textarea>
+            
+            <button class="btn btn-gold btn-full btn-red" id="btn-copy">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                完成プロンプトを写し取る（コピー）
+            </button>
+        </div>
+
+        <footer>
+            © ケツ印一家公式プロンプト生成処・裏方本部
+        </footer>
+    </div>
+
+    <!-- トースト通知 -->
+    <div class="toast-message" id="toast">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>プロンプトをクリップボードに控えたぞ！</span>
+    </div>
+
+    <!-- --- JavaScript ロジック --- -->
+    <script>
+        // 1. 武器ガチャデータ
+        const weapons = [
+            { name: "ぴこぴこハンマー", desc: "叩くとぴこーんと抜けた音が鳴る一家の標準装備", stat: "攻撃力1 / 宴会力50" },
+            { name: "桃金棒", desc: "見た目は最強、中身は発泡スチロール製の安心設計", stat: "攻撃力0 / 宴会力80" },
+            { name: "ハリセン", desc: "ツッコミ時に最高のパァンという炸裂音を響かせるおもしろ武器", stat: "攻撃力30 / 宴会力150" },
+            { name: "巨大うまい棒", desc: "絶対に湿気らせてはならない一家秘伝の長尺駄菓子", stat: "攻撃力5 / 宴会力120" },
+            { name: "桜吹雪バズーカ", desc: "攻撃力は皆無だが、一瞬で場を宴会へと変えるお祭り兵器", stat: "攻撃力0 / 宴会力999" },
+            { name: "シャボン玉刀", desc: "抜刀と同時にキラキラの泡が優雅に舞い踊るお戯れ刀", stat: "攻撃力10 / 宴会力300" },
+            { name: "桃花扇", desc: "優雅に仰ぐだけでお尻のような甘い香りの風を巻き起こす雅な扇", stat: "攻撃力5 / 宴会力200" },
+            { name: "カラオケマイクソード", desc: "握ると魂のシャウトが響き渡る、刃のないマイク型長剣", stat: "攻撃力40 / 宴会力400" },
+            { name: "わたあめ棍棒", desc: "甘くてふわふわなため、敵に当たると笑顔を誘発するおいしい棍棒", stat: "攻撃力0 / 宴会力250" },
+            { name: "たこ焼きメイス", desc: "熱々のたこ焼きが先端に配された、飯テロ用打撃兵器", stat: "攻撃力15 / 宴会力180" },
+            { name: "応援メガホンランス", desc: "大声で仲間を鼓舞し、敵には笑いを届ける超巨大拡声器", stat: "攻撃力8 / 宴会力350" },
+            { name: "巨大団子ハンマー", desc: "もちもちの三色団子が刺さった、見た目が甘美な重量系ハンマー", stat: "攻撃力20 / 宴会力220" },
+            { name: "桃まんじゅう爆弾", desc: "爆発すると中からほかほかの餡子が飛び出す幸せの爆弾", stat: "攻撃力50 / 宴会力500" },
+            { name: "お祭りヨーヨー鎖鎌", desc: "水風船のように跳ねて揺れる、アクロバティックな玩具系鎖鎌", stat: "攻撃力25 / 宴会力280" },
+            { name: "ケツ印のぼり旗", desc: "一家の栄光を掲げ、風になびくド派手な金ピカの幟（のぼり）", stat: "攻撃力10 / 宴会力888" }
+        ];
+
+        // レア度確率テーブル
+        const rarities = [
+            { code: "N", label: "N", weight: 35 },
+            { code: "R", label: "R", weight: 30 },
+            { code: "SR", label: "SR", weight: 20 },
+            { code: "SSR", label: "SSR", weight: 12 },
+            { code: "LR", label: "LR", weight: 3 }
+        ];
+
+        // ランダムオプションリスト
+        const roles = [
+            "組長", "若頭", "極妻", "宴会部長", "サブスタ幹部", "ケツ縁番頭", 
+            "笑顔取締役", "桜吹雪の相談役", "人情奉行", "桃尻特攻隊長", "宴会覇王", "ケツ縁の伝道師"
+        ];
+        const expressions = [
+            "堂々とした笑顔", "少し不敵な笑み", "無垢で楽しそう", "真顔なのに可愛い", 
+            "極妻風", "ドヤ顔", "宴会で盛り上がっている"
+        ];
+        const poses = [
+            "仁王立ち", "腕組み", "扇子を持つ", "酒を持つ", "指差し", "歩いている", "見得を切る"
+        ];
+
+        // 名前札デザインと位置のオプション
+        const tagStyles = [
+            "江戸千社札（桜色・漆黒太筆文字）",
+            "極道漆木札（漆塗りの黒木、フチは金の二重線、内側は金の浮き彫り文字）",
+            "高級金箔札（光沢ある黄金の下地、真っ黒な力強い毛筆文字）",
+            "お祭り紅白札（縁起の良い紅白枠、躍動感ある寄席文字）",
+            "ケツ印看板（桃色グラデーションの和紙札、金の家紋スタンプ入り）"
+        ];
+        const tagPositions = [
+            "画面右上に縦書きで凛と浮かぶように配置",
+            "画面左上に縦書きで堂々とぶら下がるように配置",
+            "キャラクターのすぐ足元に、少し斜めに立てかけるように立体アセットとして配置"
+        ];
+
+        // 状態保持用 (初期状態は未開封)
+        let currentWeapon = null; 
+        let currentRarity = null;
+        let isBoxOpened = false;
+
+        // DOMの取得
+        const sakuraContainer = document.getElementById('sakura-container');
+        const gachaBox = document.getElementById('gacha-box');
+        const gachaInner = document.getElementById('gacha-inner');
+        const gachaFlash = document.getElementById('gacha-flash');
+        const btnGacha = document.getElementById('btn-gacha');
+        const btnRandom = document.getElementById('btn-random');
+        const btnGenerate = document.getElementById('btn-generate');
+        const btnCopy = document.getElementById('btn-copy');
+        const outputPrompt = document.getElementById('output-prompt');
+        const toast = document.getElementById('toast');
+        const boxWrapper = document.getElementById('box-wrapper');
+
+        // 入力フォーム要素
+        const inputCharName = document.getElementById('char-name');
+        const selectCharRole = document.getElementById('char-role');
+        const selectExpression = document.getElementById('char-expression');
+        const selectPose = document.getElementById('char-pose');
+        const inputKojo = document.getElementById('char-kojo');
+        
+        // 名前札フォーム要素
+        const selectTagStyle = document.getElementById('tag-style');
+        const selectTagPosition = document.getElementById('tag-position');
+
+        // --- 桜吹雪の生成 ---
+        function createSakuraPetals() {
+            const count = window.innerWidth < 768 ? 15 : 30;
+            for (let i = 0; i < count; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'petal';
+                petal.style.left = Math.random() * 100 + 'vw';
+                petal.style.width = Math.random() * 10 + 8 + 'px';
+                petal.style.height = Math.random() * 10 + 8 + 'px';
+                petal.style.animationDelay = Math.random() * 10 + 's';
+                petal.style.animationDuration = Math.random() * 6 + 8 + 's';
+                sakuraContainer.appendChild(petal);
+            }
+        }
+
+        // --- ガチャを引くコア処理 ---
+        function selectRarity() {
+            const totalWeight = rarities.reduce((sum, r) => sum + r.weight, 0);
+            let random = Math.random() * totalWeight;
+            for (const r of rarities) {
+                if (random < r.weight) return r;
+                random -= r.weight;
+            }
+            return rarities[0];
+        }
+
+        function rollGacha(silent = false) {
+            if (silent) {
+                currentWeapon = weapons[Math.floor(Math.random() * weapons.length)];
+                currentRarity = selectRarity();
+                isBoxOpened = true;
+                updateWeaponDisplay(currentWeapon, currentRarity);
+                generatePrompt();
+                return;
+            }
+
+            btnGacha.disabled = true;
+            
+            gachaInner.innerHTML = `
+                <div class="box-svg-wrapper shake" id="box-wrapper">
+                    <svg class="box-svg" viewBox="0 0 100 100" id="chest-svg">
+                        <rect x="20" y="35" width="60" height="45" rx="4" fill="none" stroke="#ffd700" stroke-width="3"/>
+                        <rect x="15" y="30" width="70" height="10" rx="2" fill="none" stroke="#ffd700" stroke-width="3"/>
+                        <circle cx="50" cy="55" r="14" fill="#ff1493" stroke="#ffd700" stroke-width="2"/>
+                        <path d="M 50 48 L 50 62 M 45 55 L 55 55" stroke="#ffd700" stroke-width="2"/>
+                        <line x1="32" y1="40" x2="32" y2="80" stroke="#ffd700" stroke-width="1.5" stroke-dasharray="2 2" />
+                        <line x1="68" y1="40" x2="68" y2="80" stroke="#ffd700" stroke-width="1.5" stroke-dasharray="2 2" />
+                        <path d="M 10 20 L 25 25 M 90 20 L 75 25 M 50 10 L 50 22" stroke="#ff1493" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="box-instruction" style="color: var(--color-pink-hot);">開封中...何が出るかお楽しみ！</div>
+            `;
+
+            setTimeout(() => {
+                gachaInner.innerHTML = `<div class="gacha-roll-anim" id="roulette-view" style="font-family: var(--font-family-serif); font-size: 1.5rem; color: var(--color-gold-bright); font-weight: 900;">？？？</div>`;
+                const rouletteView = document.getElementById('roulette-view');
+
+                let intervalTimer = setInterval(() => {
+                    const tempWeapon = weapons[Math.floor(Math.random() * weapons.length)];
+                    rouletteView.textContent = tempWeapon.name;
+                }, 60);
+
+                setTimeout(() => {
+                    clearInterval(intervalTimer);
+                    
+                    currentWeapon = weapons[Math.floor(Math.random() * weapons.length)];
+                    currentRarity = selectRarity();
+                    isBoxOpened = true;
+
+                    updateWeaponDisplay(currentWeapon, currentRarity);
+
+                    gachaFlash.classList.add('active');
+                    setTimeout(() => {
+                        gachaFlash.classList.remove('active');
+                    }, 500);
+
+                    btnGacha.disabled = false;
+                    btnGacha.textContent = "ランダムボックスを再度開封する";
+                    
+                    generatePrompt();
+                }, 800);
+
+            }, 700);
+        }
+
+        function updateWeaponDisplay(weapon, rarity) {
+            gachaInner.innerHTML = `
+                <div class="rarity-badge rarity-${rarity.code.toLowerCase()}">${rarity.label}</div>
+                <div class="weapon-name">${weapon.name}</div>
+                <div class="weapon-desc">${weapon.desc}</div>
+                <div class="weapon-stat">${weapon.stat}</div>
+            `;
+        }
+
+        // --- 全項目ランダム生成（天命お任せ） ---
+        function rollRandomAll() {
+            const randomRole = roles[Math.floor(Math.random() * roles.length)];
+            selectCharRole.value = randomRole;
+
+            const randomExpression = expressions[Math.floor(Math.random() * expressions.length)];
+            selectExpression.value = randomExpression;
+
+            const randomPose = poses[Math.floor(Math.random() * poses.length)];
+            selectPose.value = randomPose;
+
+            // 名前札デザインと位置もランダムに決定
+            const randomTagStyle = tagStyles[Math.floor(Math.random() * tagStyles.length)];
+            selectTagStyle.value = randomTagStyle;
+
+            const randomTagPosition = tagPositions[Math.floor(Math.random() * tagPositions.length)];
+            selectTagPosition.value = randomTagPosition;
+
+            rollGacha(true);
+        }
+
+        // --- プロンプト生成ロジック ---
+        function generatePrompt() {
+            if (!isBoxOpened) {
+                outputPrompt.value = "【警告】ケツ印特製ランダムボックスがまだ未開封です！\n\nまずは「ランダムボックスを開封する」ボタンを押し、今回使用する『決戦兵器（お遊び武器アイテム）』を引き当ててください。";
+                return;
+            }
+
+            const charName = inputCharName.value.trim() || "もちスラ";
+            const role = selectCharRole.value;
+            const headRatio = document.querySelector('input[name="head-ratio"]:checked').value;
+            const expression = selectExpression.value;
+            const pose = selectPose.value;
+            const kojo = inputKojo.value.trim();
+
+            const weaponName = currentWeapon.name;
+            const weaponDesc = currentWeapon.desc;
+            const rarity = currentRarity.label;
+
+            // 名前札の仕様
+            const tagStyle = selectTagStyle.value;
+            const tagPosition = selectTagPosition.value;
+
+            // --- ポーズとアイテムのバッティングを解消する自動調停ロジック ---
+            let poseAndItemDescription = "";
+            if (pose === "扇子を持つ") {
+                if (weaponName === "桃花扇") {
+                    poseAndItemDescription = `キャラクターは右手に黄金と桜色の美しい「桃花扇」（ガチャ結果武器）を開いて優雅に持ち、風情のある見得を切っています。`;
+                } else {
+                    poseAndItemDescription = `片手には雅な扇子を開いて持ちつつ、もう一方の手には「${weaponName}」（ガチャ結果武器）を堂々と構えています。手や腕の形がデタラメに増えないように、両手の持ち方に細心の注意を払って描いてください。`;
+                }
+            } else if (pose === "酒を持つ") {
+                poseAndItemDescription = `片手でお祝いの酒器（お猪口または枡）を高く掲げつつ、背中または腰の帯に「${weaponName}」（ガチャ結果武器）をかっこよく携帯しています。両方のアイテムが不自然に融合せず、それぞれ独立して描かれるようにしてください。`;
+            } else if (pose === "腕組み") {
+                poseAndItemDescription = `腕組みをしたポーズをとっています。ガチャ結果武器である「${weaponName}」は、キャラクターのすぐ脇に立てかけられているか、背中に紐で背負われています。`;
+            } else if (pose === "仁王立ち") {
+                poseAndItemDescription = `堂々とした仁王立ち。手にはガチャ結果武器である「${weaponName}」をしっかりと握りしめて前に突き出しています。`;
+            } else {
+                poseAndItemDescription = `${pose}のポーズをとりつつ、ガチャ結果武器である「${weaponName}」を愛嬌たっぷりに構えています。`;
+            }
+
+            const prompt = `添付したキャラクター画像を参考にしてください。
+添付したケツ印一家の家紋画像を参考にしてください。
+
+ケツ印一家の正式な構成員としての超ハイクオリティなキャラクターイラストを制作してください。
+
+【出力仕様と構図】
+- アスペクト比: 4:5 縦長ポスター。
+- 背景: 深い漆黒背景、豪華絢爛な夜桜と、美しく飛び散る金箔の輝き。背景からは和風の提灯（ちょうちん）のあたたかく美しい光がキャラクターをドラマチックに照らし出している。
+- 全体のトーン: 高級感、和風お祭り感、大宴会の賑やかさ、そして「極道映画のポスター」を意識した任侠人情風の渋いシチュエーション。
+- キャラクター造形: 怖すぎず、デフォルメされた「可愛い」かつ「コミカル」なデザインで、公式グッズ化できそうな非常に高い完成度。本物の反社会的、暴力的表現は一切含まないこと。
+
+【独立した名前札（ネームタグ・アセット）】
+- デザインスタイル: 縦長の独立した「${tagStyle}」を明確なアセットとしてポスター内に描いてください。
+- 表示内容: 札の内部に、美しい極太の毛筆文字（Calligraphy）で、はっきりと読めるように「${charName}」（キャラクター名）と、その横に小さく「${role}」（役職）と縦書きでレタリングしてください。
+- 配置: 画面内の「${tagPosition}」に、他の背景やキャラクターの手足と重なり合って潰れないように、明確に「独立したデザインアセット」として美しく目立たせて描いてください。文字が歪んだり崩れたりしないようにクッキリと表現すること。
+
+【キャラクター詳細設定】
+- キャラクター名: ${charName}
+- 一家での役職: ${role}
+- 等身: ${headRatio}の愛らしいフォルム
+- 表情: ${expression}（威厳と愛嬌が絶妙に同居する表情）
+- ポーズ＆武器携行描写: ${poseAndItemDescription}（手が3本になったり、アイテム描写が破綻・重複しないように一本化して描いてください）
+
+【服装と配色】
+- 服装: 漆黒の美しい着物の上に、格式高い漆黒の羽織を着用。
+- 陣羽織: その上に「ケツ印一家」の公式家紋が背中に大きくあしらわれた豪華な陣羽織（黒・金・ピンクの和柄配色）を着用している。
+- テーマカラー: 黒、金、そして鮮やかなピンクを基調とした現代的かつ煌びやかな色彩設計。
+
+【装備武器（お遊びアイテム）】
+- 今回のガチャ獲得武器: ${weaponName}
+- アイテム詳細: ${weaponDesc} (レア度: ${rarity})
+- 注意事項: 本物の刀や銃、実在する危険な武器は絶対に使用せず、おもちゃ・宴会用・お祭り用としてコミカルに描いてください。
+
+【テキストデザイン】
+- ポスターの下部中央に、極道映画のタイトルロゴ風の力強い筆文字風フォントで、以下の口上（セリフ）をエレガントにレイアウトして追加してください。
+「${kojo || '義理と人情、そして少しのケツ'}」`;
+
+            outputPrompt.value = prompt;
+        }
+
+        // --- コピー機能 ---
+        function copyToClipboard() {
+            const textToCopy = outputPrompt.value;
+            if (!textToCopy || !isBoxOpened) return;
+
+            const tempTextarea = document.createElement('textarea');
+            tempTextarea.value = textToCopy;
+            tempTextarea.style.position = 'fixed';
+            tempTextarea.style.top = '0';
+            tempTextarea.style.left = '0';
+            tempTextarea.style.opacity = '0';
+            document.body.appendChild(tempTextarea);
+            tempTextarea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast();
+                } else {
+                    console.error('コピーに失敗しました');
+                }
+            } catch (err) {
+                console.error('エラーが発生しました: ', err);
+            } finally {
+                document.body.removeChild(tempTextarea);
+            }
+        }
+
+        function showToast() {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // --- イベント初期化 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            createSakuraPetals();
+
+            // ガチャボタン
+            btnGacha.addEventListener('click', () => {
+                rollGacha(false);
+            });
+
+            // 天命お任せ（ランダム）
+            btnRandom.addEventListener('click', () => {
+                rollRandomAll();
+            });
+
+            // プロンプト生成ボタン
+            btnGenerate.addEventListener('click', () => {
+                generatePrompt();
+                outputPrompt.style.borderColor = 'var(--color-pink-hot)';
+                setTimeout(() => {
+                    outputPrompt.style.borderColor = 'var(--color-gold-matte)';
+                }, 400);
+            });
+
+            // コピーボタン
+            btnCopy.addEventListener('click', copyToClipboard);
+
+            // フォーム項目（名前札等）が変更されたら即プロンプトを自動更新（開封済みの場合のみ）
+            const autoUpdateElements = [
+                inputCharName, selectCharRole, selectExpression, selectPose, inputKojo,
+                selectTagStyle, selectTagPosition
+            ];
+            autoUpdateElements.forEach(el => {
+                el.addEventListener('change', () => {
+                    if (isBoxOpened) generatePrompt();
+                });
+            });
+
+            // ラジオボタンの変更
+            document.querySelectorAll('input[name="head-ratio"]').forEach(el => {
+                el.addEventListener('change', () => {
+                    if (isBoxOpened) generatePrompt();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
