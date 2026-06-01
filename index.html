@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -207,6 +208,38 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+        }
+
+        /* --- 添付画像リマインダー案内板 --- */
+        .attachment-notice {
+            background: rgba(255, 20, 147, 0.1);
+            border: 1px solid var(--color-pink-hot);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .notice-icon {
+            color: var(--color-pink-hot);
+            font-size: 1.5rem;
+            line-height: 1;
+            margin-top: 2px;
+        }
+
+        .notice-text h4 {
+            font-family: var(--font-family-serif);
+            color: var(--color-pink-soft);
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .notice-text p {
+            font-size: 0.78rem;
+            color: #ddd;
+            line-height: 1.4;
         }
 
         /* --- フォーム入力部品 --- */
@@ -534,7 +567,7 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* 飾り提灯（デスクトップ時のみ見えるお祭り感） */
+        /* 飾り提灯 */
         .lantern {
             display: none;
             position: absolute;
@@ -611,7 +644,7 @@
     <!-- 桜吹雪背景 -->
     <div class="sakura-container" id="sakura-container"></div>
 
-    <!-- 飾り提灯（PCサイズ） -->
+    <!-- 飾り提灯 -->
     <div class="lantern lantern-left"></div>
     <div class="lantern lantern-right"></div>
 
@@ -638,6 +671,15 @@
 
     <!-- メインコンテンツ -->
     <div class="main-container">
+
+        <!-- 特記：画像添付リマインダー -->
+        <div class="attachment-notice">
+            <div class="notice-icon">📌</div>
+            <div class="notice-text">
+                <h4>画像添付の心構え</h4>
+                <p>このツールは<strong>「ChatGPTにキャラクター画像と家紋画像を添付した状態」</strong>で動作させるプロンプトを作ります。生成時は、必ずお手元にある2つの参考アセット画像をチャット画面にアップロードした上で送信してください。</p>
+            </div>
+        </div>
 
         <!-- 一、構成員設定 -->
         <div class="panel">
@@ -702,7 +744,7 @@
 
             <!-- ポーズ -->
             <div class="form-group">
-                <label for="char-pose">ポーズ</label>
+                <label for="char-pose">ポーズ（※立ち姿は正面固定）</label>
                 <select id="char-pose" class="select-box">
                     <option value="仁王立ち" selected>仁王立ち</option>
                     <option value="腕組み">腕組み</option>
@@ -721,7 +763,7 @@
             </div>
         </div>
 
-        <!-- 二、名前札（千社札・木札）設定 【新規アセット化】 -->
+        <!-- 二、名前札（千社札・木札）設定 -->
         <div class="panel">
             <h2 class="panel-title">
                 <span>二、名前札設定（独立アセット）</span>
@@ -736,7 +778,7 @@
                     <option value="極道漆木札（漆塗りの黒木、フチは金の二重線、内側は金の浮き彫り文字）">極道漆木札（金フチ・黒漆・金の文字）</option>
                     <option value="高級金箔札（光沢ある黄金の下地、真っ黒な力強い毛筆文字）">高級金箔札（ゴールド・黒太筆文字）</option>
                     <option value="お祭り紅白札（縁起の良い紅白枠、躍動感ある寄席文字）">お祭り紅白札（紅白・寄席文字）</option>
-                    <option value="ケツ印看板（桃色グラデーションの和紙札、金の家紋スタンプ入り）">ケツ印看板（桃色和紙・金の家紋入り）</option>
+                    <option value="ケツ印看板（桃色グラデーション of 和紙札、金の家紋スタンプ入り）">ケツ印看板（桃色和紙・金の家紋入り）</option>
                 </select>
             </div>
 
@@ -871,7 +913,7 @@
             "極道漆木札（漆塗りの黒木、フチは金の二重線、内側は金の浮き彫り文字）",
             "高級金箔札（光沢ある黄金の下地、真っ黒な力強い毛筆文字）",
             "お祭り紅白札（縁起の良い紅白枠、躍動感ある寄席文字）",
-            "ケツ印看板（桃色グラデーションの和紙札、金の家紋スタンプ入り）"
+            "ケツ印看板（桃色グラデーション of 和紙札、金の家紋スタンプ入り）"
         ];
         const tagPositions = [
             "画面右上に縦書きで凛と浮かぶように配置",
@@ -1013,7 +1055,6 @@
             const randomPose = poses[Math.floor(Math.random() * poses.length)];
             selectPose.value = randomPose;
 
-            // 名前札デザインと位置もランダムに決定
             const randomTagStyle = tagStyles[Math.floor(Math.random() * tagStyles.length)];
             selectTagStyle.value = randomTagStyle;
 
@@ -1041,62 +1082,71 @@
             const weaponDesc = currentWeapon.desc;
             const rarity = currentRarity.label;
 
-            // 名前札の仕様
+            // 名前札仕様
             const tagStyle = selectTagStyle.value;
             const tagPosition = selectTagPosition.value;
 
             // --- ポーズとアイテムのバッティングを解消する自動調停ロジック ---
+            // ※「立ち姿は基本正面固定（facing fully forward, front-facing standing pose）」を共通大前提としてプロンプトに埋め込む
             let poseAndItemDescription = "";
+            const baseFrontFacingRule = "キャラクターの体、顔、目線はすべて【完全に正面を真っ直ぐ向いた直立不動・正面立ち固定（fully front-facing standing pose, facing the camera directly, perfectly centered）】の構図を徹底してください。斜めの構図や横向き、見下ろし・見上げのアングルは一切禁止です。";
+
             if (pose === "扇子を持つ") {
                 if (weaponName === "桃花扇") {
-                    poseAndItemDescription = `キャラクターは右手に黄金と桜色の美しい「桃花扇」（ガチャ結果武器）を開いて優雅に持ち、風情のある見得を切っています。`;
+                    poseAndItemDescription = `${baseFrontFacingRule}完全正面固定の立ち姿で、右手に黄金と桜色の美しい「桃花扇」（ガチャ結果武器）を開いて優雅に持ち、風情のある正面キメポーズをとっています。`;
                 } else {
-                    poseAndItemDescription = `片手には雅な扇子を開いて持ちつつ、もう一方の手には「${weaponName}」（ガチャ結果武器）を堂々と構えています。手や腕の形がデタラメに増えないように、両手の持ち方に細心の注意を払って描いてください。`;
+                    poseAndItemDescription = `${baseFrontFacingRule}完全正面固定の立ち姿で、片手には雅な扇子を開いて持ちつつ、もう一方の手には「${weaponName}」（ガチャ結果武器）を堂々と構えています。手や腕の形がデタラメに増えないよう、両手の持ち方に細心の注意を払って描いてください。`;
                 }
             } else if (pose === "酒を持つ") {
-                poseAndItemDescription = `片手でお祝いの酒器（お猪口または枡）を高く掲げつつ、背中または腰の帯に「${weaponName}」（ガチャ結果武器）をかっこよく携帯しています。両方のアイテムが不自然に融合せず、それぞれ独立して描かれるようにしてください。`;
+                poseAndItemDescription = `${baseFrontFacingRule}完全正面固定の立ち姿で、片手でお祝いの酒器（お猪口または枡）を正面に向けて高く掲げつつ、背中または腰の帯に「${weaponName}」（ガチャ結果武器）をかっこよく携帯しています。両方のアイテムが不自然に融合せず、それぞれ独立して描かれるようにしてください。`;
             } else if (pose === "腕組み") {
-                poseAndItemDescription = `腕組みをしたポーズをとっています。ガチャ結果武器である「${weaponName}」は、キャラクターのすぐ脇に立てかけられているか、背中に紐で背負われています。`;
+                poseAndItemDescription = `${baseFrontFacingRule}完全正面固定の立ち姿で、堂々と腕組みをしたキメポーズをとっています。ガチャ結果武器である「${weaponName}」は、キャラクターのすぐ脇に垂直に立てかけられているか、背中に紐でまっすぐ背負われています。`;
             } else if (pose === "仁王立ち") {
-                poseAndItemDescription = `堂々とした仁王立ち。手にはガチャ結果武器である「${weaponName}」をしっかりと握りしめて前に突き出しています。`;
+                poseAndItemDescription = `${baseFrontFacingRule}完全正面固定の堂々たる仁王立ち（両足を左右に力強く開いて真っ直ぐ立つ姿勢）です。手にはガチャ結果武器である「${weaponName}」をしっかりと握りしめて正面に突き出しています。`;
+            } else if (pose === "歩いている") {
+                poseAndItemDescription = `${baseFrontFacingRule}正面カメラに向かって真っ直ぐこちらに歩みを進めているような、完全正面向きの躍動感ある正面立ち姿です。手にはガチャ結果武器である「${weaponName}」をしっかりと持っています。`;
+            } else if (pose === "見得を切る") {
+                poseAndItemDescription = `${baseFrontFacingRule}歌舞伎の正面向きの「見得（みえ）」のように、正面を見据えてカッと力強くキメた正面立ち姿です。ガチャ結果武器である「${weaponName}」を堂々と構えています。`;
             } else {
-                poseAndItemDescription = `${pose}のポーズをとりつつ、ガチャ結果武器である「${weaponName}」を愛嬌たっぷりに構えています。`;
+                poseAndItemDescription = `${baseFrontFacingRule}完全正面向きの立ち姿（${pose}）をとりつつ、ガチャ結果武器である「${weaponName}」を愛嬌たっぷりに構えています。`;
             }
 
-            const prompt = `添付したキャラクター画像を参考にしてください。
-添付したケツ印一家の家紋画像を参考にしてください。
+            const prompt = `※【最重要システムコマンド】ユーザーがアップロードして添付した「キャラクター画像」と「ケツ印一家の家紋画像」の2つの物理アセット画像を、必ず最優先で完全参照・分析して描画してください。
 
-ケツ印一家の正式な構成員としての超ハイクオリティなキャラクターイラストを制作してください。
+【1. 添付画像の厳格参照ルール】
+1. キャラクターの参照: 添付された「キャラクター画像」の体型、目鼻立ち、ベースとなるカラーリング、独特な可愛らしい造形特徴を100%継承したキャラクターとして描写してください。
+2. 家紋の参照: 添付された「ケツ印一家の家紋画像」の形状・意匠（お尻/桃を極限までシンプルに図案化したゴールドの美しい家紋）を正確に読み取り、キャラクターの陣羽織の背面、およびポスターの指定位置に克明にデザインしてください。
 
-【出力仕様と構図】
+【2. 出力仕様と構図】
 - アスペクト比: 4:5 縦長ポスター。
 - 背景: 深い漆黒背景、豪華絢爛な夜桜と、美しく飛び散る金箔の輝き。背景からは和風の提灯（ちょうちん）のあたたかく美しい光がキャラクターをドラマチックに照らし出している。
 - 全体のトーン: 高級感、和風お祭り感、大宴会の賑やかさ、そして「極道映画のポスター」を意識した任侠人情風の渋いシチュエーション。
 - キャラクター造形: 怖すぎず、デフォルメされた「可愛い」かつ「コミカル」なデザインで、公式グッズ化できそうな非常に高い完成度。本物の反社会的、暴力的表現は一切含まないこと。
 
-【独立した名前札（ネームタグ・アセット）】
+【3. 独立した名前札（ネームタグ・アセット）】
 - デザインスタイル: 縦長の独立した「${tagStyle}」を明確なアセットとしてポスター内に描いてください。
 - 表示内容: 札の内部に、美しい極太の毛筆文字（Calligraphy）で、はっきりと読めるように「${charName}」（キャラクター名）と、その横に小さく「${role}」（役職）と縦書きでレタリングしてください。
 - 配置: 画面内の「${tagPosition}」に、他の背景やキャラクターの手足と重なり合って潰れないように、明確に「独立したデザインアセット」として美しく目立たせて描いてください。文字が歪んだり崩れたりしないようにクッキリと表現すること。
 
-【キャラクター詳細設定】
+【4. キャラクター詳細設定（立ち姿正面固定）】
 - キャラクター名: ${charName}
 - 一家での役職: ${role}
 - 等身: ${headRatio}の愛らしいフォルム
 - 表情: ${expression}（威厳と愛嬌が絶妙に同居する表情）
-- ポーズ＆武器携行描写: ${poseAndItemDescription}（手が3本になったり、アイテム描写が破綻・重複しないように一本化して描いてください）
+- ポーズ＆武器携行描写: ${poseAndItemDescription}
+- 構図ルール: 体の向き、骨格、顔の角度、視線すべてがカメラの正面を真っ直ぐに捉えた「正面固定（perfectly symmetric front view）」で描くことを徹底してください。
 
-【服装と配色】
+【5. 服装と配色】
 - 服装: 漆黒の美しい着物の上に、格式高い漆黒の羽織を着用。
-- 陣羽織: その上に「ケツ印一家」の公式家紋が背中に大きくあしらわれた豪華な陣羽織（黒・金・ピンクの和柄配色）を着用している。
+- 陣羽織: その上に添付の「ケツ印一家の家紋」が背中に大きく金刺繍であしらわれた豪華な陣羽織（黒・金・ピンクの和柄配色）を着用している。
 - テーマカラー: 黒、金、そして鮮やかなピンクを基調とした現代的かつ煌びやかな色彩設計。
 
-【装備武器（お遊びアイテム）】
+【6. 装備武器（お遊びアイテム）】
 - 今回のガチャ獲得武器: ${weaponName}
 - アイテム詳細: ${weaponDesc} (レア度: ${rarity})
 - 注意事項: 本物の刀や銃、実在する危険な武器は絶対に使用せず、おもちゃ・宴会用・お祭り用としてコミカルに描いてください。
 
-【テキストデザイン】
+【7. テキストデザイン】
 - ポスターの下部中央に、極道映画のタイトルロゴ風の力強い筆文字風フォントで、以下の口上（セリフ）をエレガントにレイアウトして追加してください。
 「${kojo || '義理と人情、そして少しのケツ'}」`;
 
@@ -1164,7 +1214,7 @@
             // コピーボタン
             btnCopy.addEventListener('click', copyToClipboard);
 
-            // フォーム項目（名前札等）が変更されたら即プロンプトを自動更新（開封済みの場合のみ）
+            // フォームの自動更新設定
             const autoUpdateElements = [
                 inputCharName, selectCharRole, selectExpression, selectPose, inputKojo,
                 selectTagStyle, selectTagPosition
@@ -1175,7 +1225,6 @@
                 });
             });
 
-            // ラジオボタンの変更
             document.querySelectorAll('input[name="head-ratio"]').forEach(el => {
                 el.addEventListener('change', () => {
                     if (isBoxOpened) generatePrompt();
@@ -1185,3 +1234,5 @@
     </script>
 </body>
 </html>
+
+```
